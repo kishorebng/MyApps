@@ -1,22 +1,26 @@
 package com.kishore.news.model
 
-import android.content.Context
 import androidx.lifecycle.LiveData
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import com.kishore.news.model.database.*
+import com.kishore.news.model.database.NewsDao
+import com.kishore.news.model.database.NewsDataBase
+import com.kishore.news.model.database.NewsPreferencesTable
+import com.kishore.news.model.database.NewsTable
 import com.kishore.news.model.network.NewsNetworkDataSource
-import com.kishore.news.model.worker.NewsDatabaseWorker
+import com.kishore.news.util.NewsLogUtil
 
 class NewsRepository(newsDataBase: NewsDataBase,
                      newsNetworkDataSource: NewsNetworkDataSource) {
 
     private val LOG_TAG = NewsRepository::class.java.getSimpleName()
-    private lateinit var mNewsDao: NewsDao
-    private lateinit var mNewsDataBase: NewsDataBase
-    private lateinit var mNewsNetworkDataSource: NewsNetworkDataSource
+    private var mNewsDao: NewsDao
+
+    private var mNewsDataBase: NewsDataBase
+    private var mNewsNetworkDataSource: NewsNetworkDataSource
+
     private var mInitialized = false
 
+    /*
+      Commented as we using Hilt for dependency Injection
     companion object {
         // For Singleton instantiation
         private var instance: NewsRepository? = null
@@ -31,6 +35,18 @@ class NewsRepository(newsDataBase: NewsDataBase,
 
     }
 
+    /* this can be used if you want no argument in constructor */
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface NewsRepositotyInterface  {
+        val newsDataBase : NewsDataBase
+        val newsNetworkDataSource : NewsNetworkDataSource
+    }
+      mNewsDataBase = EntryPoints.get(applicationContext, NewsDatabaseInterface::class.java).newsDataBase
+      mNewsNetworkDataSource = EntryPoints.get(applicationContext, NewsDatabaseInterface::class.java).newsNetworkDataSource
+     */
+
+
     init {
         mNewsDataBase = newsDataBase
         mNewsNetworkDataSource = newsNetworkDataSource
@@ -41,27 +57,32 @@ class NewsRepository(newsDataBase: NewsDataBase,
         // If that LiveData changes, update the database.
         val headlines = mNewsNetworkDataSource.getHeadlines()
         headlines.observeForever { breakingNewsFromNetwork ->
+            NewsLogUtil.d(LOG_TAG+ "headlines changes")
             mNewsDao.deleteNews(NewsModelUtil.HEADLINE)
-            mNewsDao.insertAll(breakingNewsFromNetwork)
+            mNewsDao.insertAll(breakingNewsFromNetwork as List<NewsTable>)
         }
 
         val allNews = mNewsNetworkDataSource.getAllNews()
         allNews.observeForever { allNewsFromNetwork ->
+            NewsLogUtil.d(LOG_TAG+ "all news changes")
             mNewsDao.deleteNews(NewsModelUtil.NORMAL_NEWS)
-            mNewsDao.insertAll(allNewsFromNetwork)
+            mNewsDao.insertAll(allNewsFromNetwork as List<NewsTable>)
         }
     }
 
     @Synchronized
     private fun initializeData() {
+        NewsLogUtil.d("initializeData ")
         if (mInitialized) return
         mInitialized = true
         startRecurringService()
         fetchNews()
+//        prePopulatenews()
     }
 
 
     fun getHeadlines(): LiveData<List<NewsTable>> {
+        NewsLogUtil.d("getHeadlines ")
         initializeData()
         return mNewsDao.getheadlines()
     }
@@ -83,19 +104,38 @@ class NewsRepository(newsDataBase: NewsDataBase,
     }
 
 
-    fun prepopulatenews(context: Context) {
-        val request = OneTimeWorkRequestBuilder<NewsDatabaseWorker>().build()
-        WorkManager.getInstance(context).enqueue(request)
+    fun prePopulatenews() {
+//        val request = OneTimeWorkRequestBuilder<NewsDatabaseWorker>().build()
+//        WorkManager.getInstance(context).enqueue(request)
+        mNewsNetworkDataSource.prePopulatenews()
     }
 
 
     fun startRecurringService() {
+        NewsLogUtil.d("startRecurringService ")
         mNewsNetworkDataSource.scheduleRecurringNewsSync()
     }
 
 
     fun fetchNews() {
         mNewsNetworkDataSource.fetchNews()
+    }
+
+    fun testinsertToken() {
+
+        mNewsDataBase.newsPreferencesDao()
+            .insertOrUpdate(
+                NewsPreferencesTable(
+                    "App_Token",
+                    "1122","us")
+            )
+    }
+
+    fun insertToken(newsPreferencesTable : NewsPreferencesTable) {
+        mNewsDataBase.newsPreferencesDao()
+            .insertOrUpdate(
+                newsPreferencesTable
+            )
     }
 
 }

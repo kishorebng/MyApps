@@ -14,7 +14,7 @@ data class NewsTable(var date: Date? = null,
                      var publishedAt: String? = null,
                      var content: String? = null,
                      var sourceName: String? = null,
-                     var isHeadline: Int = 0) {
+                     var headline: Int = 0) {
 
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0

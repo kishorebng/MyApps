@@ -16,5 +16,5 @@ class NewsListViewModelFactory (
 ) : ViewModelProvider.NewInstanceFactory() {
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>) = NewsListViewModel(repository) as T
+    override fun <T : ViewModel> create(modelClass: Class<T>) = NewsListViewModelOld(repository) as T
 }

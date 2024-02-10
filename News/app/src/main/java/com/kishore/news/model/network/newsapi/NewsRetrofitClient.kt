@@ -18,24 +18,26 @@ class NewsRetrofitClient {
 
     private val newsApi: NewsAPI
 
+
+
     var client = OkHttpClient.Builder()
             .addInterceptor(object : Interceptor {
                 @Throws(IOException::class)
                 override fun intercept(chain: Interceptor.Chain): Response {
                     val original = chain.request()
-                    val httpUrl = original.url()
+                    val httpUrl = original.url
 
                     val newHttpUrl = httpUrl
-                            .newBuilder()
-                            .addQueryParameter(API_KEY, api_key)
-                            .build()
+                        .newBuilder()
+                        .addQueryParameter(API_KEY, api_key)
+                        .build()
 
                     val requestBuilder = original
-                            .newBuilder()
-                            .url(newHttpUrl)
+                        .newBuilder()
+                        .url(newHttpUrl)
 
                     val request = requestBuilder
-                            .build()
+                        .build()
                     return chain.proceed(request)
                 }
             }).build()
@@ -71,6 +73,5 @@ class NewsRetrofitClient {
     fun getAllNews(queryMap: Map<String, String>): Deferred<NewsData> {
         return newsApi.getAllNews(queryMap)
     }
-
 
 }

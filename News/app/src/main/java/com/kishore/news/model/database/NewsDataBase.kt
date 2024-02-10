@@ -2,38 +2,47 @@ package com.kishore.news.model.database
 
 import android.content.Context
 import android.util.Log
-import androidx.room.Database
-import androidx.room.Room
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
+import androidx.room.*
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.kishore.news.model.database.utility.DateConverter
+import com.kishore.news.model.network.NewsNetworkDataSource
+import com.kishore.news.util.NewsLogUtil
+import dagger.hilt.EntryPoints
 
-@Database (entities = [NewsTable::class], version = 1)
+@Database (entities = [NewsTable::class,NewsPreferencesTable::class],
+    version = 3)
 @TypeConverters(DateConverter::class)
 abstract class NewsDataBase : RoomDatabase() {
 
     abstract fun newsDao(): NewsDao
 
+    abstract fun newsPreferencesDao(): NewsPreferencesDao
+
     companion object {
 
-        // For Singleton instantiation
-        @Volatile private var instance: NewsDataBase? = null
+//        // For Singleton instantiation
+//        @Volatile private var instance: NewsDataBase? = null
+//
+//        fun getInstance(context: Context): NewsDataBase {
+//            return instance ?: synchronized(this) {
+//                instance ?: buildDatabase(context).also { instance = it }
+//            }
+//        }
 
-        fun getInstance(context: Context): NewsDataBase {
-            return instance ?: synchronized(this) {
-                instance ?: buildDatabase(context).also { instance = it }
-            }
-        }
-
-        private fun buildDatabase(context: Context): NewsDataBase {
+        fun buildDatabase(context: Context): NewsDataBase {
             return Room.databaseBuilder(context, NewsDataBase::class.java, "newsDetail-db")
                     .allowMainThreadQueries()
+                    .fallbackToDestructiveMigration()
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
-                            Log.i("Kishore","Created database")
+                            NewsLogUtil.i("Database created ")
                         }
+                        override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
+                            super.onDestructiveMigration(db)
+                            NewsLogUtil.i("onDestructive called ")
+                        }
+
                     })
                     .build()
         }

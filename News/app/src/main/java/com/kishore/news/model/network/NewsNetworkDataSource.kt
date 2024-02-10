@@ -1,16 +1,20 @@
 package com.kishore.news.model.network
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.work.*
-import com.kishore.news.NewsApplication
-import com.kishore.news.common.NewsUtil
-import com.kishore.news.common.depndency.NewsSharedPreferenceDagger
+import com.kishore.news.model.database.NewsDatabaseWorker
 import com.kishore.news.model.database.NewsTable
 import com.kishore.news.model.network.newsapi.NewsRetrofitClient
-import com.kishore.news.model.worker.NewsCoroutineWorker
+import com.kishore.news.util.NewsLogUtil
+import com.kishore.news.util.NewsUtil
+import com.kishore.news.util.dependency.NewsSharedPreference
+import com.kishore.news.util.dependency.NewsStringsDependency
+import dagger.hilt.EntryPoint
+import dagger.hilt.EntryPoints
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,24 +22,34 @@ import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
-class NewsNetworkDataSource(context: Context,
-                            var  mHeadlines :MutableLiveData<List<NewsTable?>> = MutableLiveData<List<NewsTable?>>(),
-                            var  mAllNews :MutableLiveData<List<NewsTable?>> = MutableLiveData<List<NewsTable?>>()) {
+class NewsNetworkDataSource(context: Context) {
 
-    private val LOG_TAG = NewsNetworkDataSource::class.java.simpleName
-    private lateinit var mContext: Context
-    @Inject
-    lateinit var mySharedPreferencesDagger: NewsSharedPreferenceDagger
+
+    private val TAG = NewsNetworkDataSource::class.java.simpleName
+    private var mContext: Context
+
+    private var  mHeadlines :MutableLiveData<List<NewsTable?>>
+    private var  mAllNews :MutableLiveData<List<NewsTable?>>
+    private var mySharedPreferences: NewsSharedPreference
+    private var stringDependency : NewsStringsDependency
+
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface NewsSharedInterface  {
+        val newsSharedPreference : NewsSharedPreference
+        val newsStringDependency : NewsStringsDependency
+    }
 
     init {
         mContext = context
-        var application : NewsApplication = mContext.applicationContext as NewsApplication
-        application.newsComponent.injectHere(this)
+        mySharedPreferences = EntryPoints.get(mContext, NewsSharedInterface::class.java).newsSharedPreference
+        stringDependency = EntryPoints.get(mContext, NewsSharedInterface::class.java).newsStringDependency
+        mHeadlines = MutableLiveData<List<NewsTable?>>()
+        mAllNews  = MutableLiveData<List<NewsTable?>>()
     }
 
-
+/*    Commented as we using Hilt for dependency Injection
     companion object {
         // The number of days we want our API to return, set to 14 days or two weeks
 
@@ -53,6 +67,8 @@ class NewsNetworkDataSource(context: Context,
         }
     }
 
+ */
+
     fun getHeadlines(): LiveData<List<NewsTable?>> {
         return mHeadlines
     }
@@ -63,22 +79,22 @@ class NewsNetworkDataSource(context: Context,
     }
 
     /*
-      Using co routine in Retrofit for getting newsdata from server
+      Using co routine in Retrofit for getting news data from server
    */
     fun getHeadlinesFromNetwork() {
 
         CoroutineScope(Dispatchers.IO).launch {
-            val request =  NewsRetrofitClient.getInstance().getHeadlines(setHeadlinesParameters());
+            val request =  NewsRetrofitClient.getInstance().getHeadlines(setHeadlinesParameters())
             withContext(Dispatchers.IO) {
                 try {
                     val response = request.await()
                     // Do something with the response
-                    Log.d(LOG_TAG, "Fetch weather using Coroutinue Retrofit Success")
-                    mHeadlines.postValue(response!!.toNewsTableDataList(1))
+                    NewsLogUtil.i(TAG+ "Fetch headlines using Co routinue Retrofit Success")
+                    mHeadlines.postValue(response.toNewsTableDataList(1))
                 } catch (e: HttpException) {
-                    Log.i(LOG_TAG, "Coroutine Http  Error"+e.message() + " "+e.code() +e.response().raw().request().url())
+                    NewsLogUtil.e(TAG+ " Coroutine Fetch headlines Http  Error"+e.message() + " "+e.code() + e.response())
                 } catch (e: Throwable) {
-                    Log.i(LOG_TAG, "Coroutine Error")
+                    NewsLogUtil.e(TAG+ "Coroutine Error")
                 }
             }
         }
@@ -92,36 +108,40 @@ class NewsNetworkDataSource(context: Context,
             val request =  NewsRetrofitClient.getInstance().getAllNews(setAllNewsParameters())
             withContext(Dispatchers.IO) {
                 try {
-                    val fullresponse = request.await()
+                   // val fullresponse = request.await()
                     val response = request.await()
                     // Do something with the response
-                    Log.d(LOG_TAG, "Fetch weather using Coroutinue Retrofit Success")
-                    mAllNews.postValue(response!!.toNewsTableDataList(0))
+                    NewsLogUtil.i(TAG+ "Fetch AllNewsFrom using Coroutinue Retrofit Success")
+                    mAllNews.postValue(response.toNewsTableDataList(0))
                 } catch (e: HttpException) {
-                    Log.i(LOG_TAG, "Coroutine Http  Error"+e.message() + " "+e.code() +e.response().raw().request().url())
+                    NewsLogUtil.e(TAG+ "Coroutine AllNewsFrom Http  Error"+e.message() + " "+e.code() + e.response())
                 } catch (e: Throwable) {
-                    Log.i(LOG_TAG, "Coroutine Error")
+                    NewsLogUtil.e(TAG+ "Coroutine Error")
                 }
             }
         }
     }
 
-     fun setHeadlinesParameters() : Map<String, String> {
-         val countryCode = mySharedPreferencesDagger.getStringPreference(mContext.getString(com.kishore.news.R.string.country_key),NewsUtil.getCountryCode())
-         val data: MutableMap<String, String> = mutableMapOf<String, String>()
-         data.put("country", countryCode)
+     private fun setHeadlinesParameters() : Map<String, String> {
+         val countryCode = mySharedPreferences.getStringPreference(mContext.getString(com.kishore.news.R.string.country_key), stringDependency.countryCode)
+        // val countryCode = "us"
+         NewsLogUtil.d(TAG+ " queryy setHeadlinesParameters *** "+countryCode)
+         val data= mutableMapOf<String, String>()
+         data["country"] = countryCode
          return data
 
      }
 
-    fun setAllNewsParameters() : Map<String, String> {
-        val query = mySharedPreferencesDagger.getStringPreference(mContext.getString(com.kishore.news.R.string.country_entry_key), NewsUtil.getDisplayCountry())
-        val data: MutableMap<String, String> = mutableMapOf<String, String>()
-        data.put("q", URLEncoder.encode(query, "UTF-8"))
-        data.put("from", NewsUtil.getformatedToday())
-        data.put("to", NewsUtil.getformatedToday())
-        data.put("sortBy", "publishedAt")
-        data.put("pageSize", "40")
+    private fun setAllNewsParameters() : Map<String, String> {
+        val query = mySharedPreferences.getStringPreference(mContext.getString(com.kishore.news.R.string.country_entry_key), stringDependency.country)
+     //   val query = "us"
+        NewsLogUtil.d(TAG+ " queryy setAllNewsParameters *** $query")
+        val data = mutableMapOf<String, String>()
+        data["q"] = URLEncoder.encode(query, "UTF-8")
+        data["from"] = NewsUtil.getformatedToday()
+        data["to"] = NewsUtil.getformatedToday()
+        data["sortBy"] = "publishedAt"
+        data["pageSize"] = "40"
         return data
     }
 
@@ -141,6 +161,13 @@ class NewsNetworkDataSource(context: Context,
 
     fun fetchNews() {
         val request = OneTimeWorkRequestBuilder<NewsCoroutineWorker>().build()
+        WorkManager.getInstance(mContext).enqueue(request)
+    }
+
+    /* for testing purpose only */
+    fun prePopulatenews() {
+        NewsLogUtil.d(TAG+ "prepopulatenews news")
+        val request = OneTimeWorkRequestBuilder<NewsDatabaseWorker>().build()
         WorkManager.getInstance(mContext).enqueue(request)
     }
 

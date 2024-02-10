@@ -1,13 +1,5 @@
 <resources>
     <string name="app_name">News</string>
-    <string name="title_section1">Section 1</string>
-    <string name="title_section2">Section 2</string>
-    <string name="title_section3">Section 3</string>
-
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-
-    <string name="action_example">Example action</string>
 
     <string name="action_settings">Settings</string>
 
@@ -16,8 +8,11 @@
     <string name="published_on">Published on</string>
     <string name="news_detail">Details about the news</string>
     <string name="read_more">Read More...</string>
-    <string name="powered_by">Powered By</string>
+    <string name="powered_by">Powered By News API</string>
+    <string name="powered_by_summary">All the content is retrieved from NewsAPI Source </string>>
     <string name="about">About</string>
+    <string name="version">App Version</string>
+    <string name="search">Search...</string>>
 
 
     <string name="order_by_label">Order By</string>
@@ -31,11 +26,27 @@
 
     <string name="settings_order_by_default" translatable="false">@string/settings_order_by_newest_value</string>
 
-    <string name="country">Country</string>
+    <string name="country">Headlines Country</string>
     <string name="country_key" translatable="false">country</string>
     <string name="country_entry_key" translatable="false">country_entry</string>
     <string name="about_key" translatable="false">about_key</string>
-    <string name="open_source" >Open Source</string>
+    <string name="share_app_key" translatable="false">share_app_key</string>
+    <string name="feedback_key" translatable="false">feedback_key</string>
+    <string name="nav_open">Open</string>
+    <string name="nav_close">Close</string>
+
+
+    <string name="app_setting">App Settings</string>
+    <string name="other_setting">General</string>
+    <string name="share">Share</string>
+    <string name="share_summary">Share this app.</string>
+    <string name="feedback">Feedback</string>
+    <string name="open_sources">Open Source</string>
+    <string name="contact">Contact Us</string>
+    <string name="feedback_summary">Report issues or suggest enhancement.</string>
+    <string name="open_sources_summary">Open Source libraries used.</string>
+    <string name="open_source" >Open source  licenses</string>
+    <string name="open_source_summary" >View complete source code of this app.</string>
     <!--Country's name -->
     <string name="country_argentine_label">Argentine</string>
     <string name="country_austria_label">Austria</string>
@@ -146,4 +157,19 @@
     <string name="country_united_states_value">us</string>
     <string name="country_venezuela_value">ve</string>
 
+    <string name="business">Business</string>
+    <string name="entertainment">Entertainment</string>
+    <string name="general">General</string>
+    <string name="health">Health</string>
+    <string name="science">Science</string>
+    <string name="sports">Sports</string>
+    <string name="technology">Technology</string>
+
+    <string name="business_value">business</string>
+    <string name="entertainment_value">entertainment</string>
+    <string name="general_value">general</string>
+    <string name="health_value">health</string>
+    <string name="science_value">science</string>
+    <string name="sports_value">sports</string>
+    <string name="technology_value">technology</string>
 </resources>

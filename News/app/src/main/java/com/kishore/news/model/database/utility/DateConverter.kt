@@ -13,6 +13,6 @@ class DateConverter {
 
     @TypeConverter
     fun toTimestamp(date: Date?): Long? {
-        return (if (date == null) null else date!!.getTime())!!.toLong()
+        return (date?.time)!!.toLong()
     }
 }

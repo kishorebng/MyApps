@@ -11,15 +11,15 @@ import java.util.*
 interface NewsDao {
 
 
-    @Query("SELECT * FROM newsDetail WHERE isHeadline = 0")
+    @Query("SELECT * FROM newsDetail WHERE headline = 0")
     fun getAllNews(): LiveData<List<NewsTable>>
 
-    @Query("SELECT * FROM newsDetail WHERE isHeadline = 1")
+    @Query("SELECT * FROM newsDetail WHERE headline = 1")
     fun getheadlines(): LiveData<List<NewsTable>>
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(news: List<NewsTable?>)
+    fun insertAll(news: List<NewsTable>)
 
 //LiveData<Optional<NewsTable>>   optional will return empty instead of null
     @Query("SELECT * FROM newsDetail where id=:id")
@@ -29,12 +29,12 @@ interface NewsDao {
     @Query("DELETE FROM newsDetail ")
     fun deleteOldNews()
 
-    @Query("DELETE FROM newsDetail where isHeadline=:breaking")
+    @Query("DELETE FROM newsDetail where headline=:breaking")
     fun deleteNews(breaking :Int)
 
 
     //@Query("SELECT * FROM newsDetail  WHERE author LIKE :query OR title LIKE :query OR description LIKE :query OR content LIKE :query OR sourceName LIKE :query")
-    @Query("SELECT * FROM newsDetail  WHERE title LIKE :query AND isHeadline = 0")
+    @Query("SELECT * FROM newsDetail  WHERE title LIKE :query AND headline = 0 GROUP BY title")
     fun searchNews(query: String): LiveData<List<NewsTable>>
 
 
@@ -46,7 +46,7 @@ interface NewsDao {
      * @param weather A list of weather forecasts to insert
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun bulkInsert(vararg news: NewsTable?)
+    fun bulkInsert(vararg news: NewsTable)
 
     /**
      * Deletes any News newsdata older than the given day
@@ -58,7 +58,7 @@ interface NewsDao {
 
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAlldata(plants: Array<NewsTable?>)
+    fun insertAlldata(plants: Array<NewsTable>)
 
 
 }

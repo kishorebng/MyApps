@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="@string/app_setting"
+        app:iconSpaceReserved="false">
+
+        <androidx.preference.ListPreference
+            android:entries="@array/country_by_labels"
+            android:entryValues="@array/country_by_values"
+            android:key="@string/country_key"
+            android:summary="%s"
+            android:title="@string/country"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/other_setting"
+        app:allowDividerAbove="true"
+        app:iconSpaceReserved="false">
+
+        <Preference
+            android:title="@string/share"
+            app:iconSpaceReserved="false"
+            app:key="@string/share_app_key"
+            android:summary="@string/share_summary"/>
+
+        <Preference
+            android:summary="@string/powered_by_summary"
+            android:title="@string/powered_by"
+            app:iconSpaceReserved="false">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://newsapi.org/" />
+        </Preference>
+
+        <Preference
+            android:title="@string/open_source"
+            android:summary="@string/open_source_summary"
+            app:iconSpaceReserved="false">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/kishorebng/MyApps" />
+        </Preference>
+
+
+
+        <Preference
+            app:iconSpaceReserved="false"
+            android:title="@string/feedback"
+            android:summary="@string/feedback_summary"
+            app:key="@string/feedback_key"/>
+
+        <Preference
+            app:iconSpaceReserved="false"
+            android:title="@string/contact">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://krisapps.blogspot.com/2022/05/news-app-android.html" />
+        </Preference>
+
+        <Preference
+            android:title="@string/version"
+            app:key="@string/version"
+            app:iconSpaceReserved="false">
+        </Preference>
+
+
+    </PreferenceCategory>
+</androidx.preference.PreferenceScreen>
